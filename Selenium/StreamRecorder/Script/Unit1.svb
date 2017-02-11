@@ -1,0 +1,278 @@
+﻿Sub Test1
+
+  Dim module,moduleAllParts,currentModuleKey,i
+  on Error Resume Next
+
+''------------------------------------------------------------------------------------------
+  module=12
+  i=1
+
+  recordPart = "All" 
+  '' 1 or 2 or 3.... or "ALL"
+  '"Part 1-2756|PART 2-2897|PART 3-4949|PART 4-3829|PART 5-6646"
+  moduleAllParts= split(getModuleData(module),"|")
+  
+  If (recordPart <> "All") then
+
+   call RecordModule(module,"PART "& recordPart, split(moduleAllParts(recordPart-1),"-")(1),"C:\Users\Rahul\Documents\Camtasia Studio")
+  Else
+   For i=1 to ubound(moduleAllParts)+1
+     call RecordModule(module,split(moduleAllParts(i-1),"-")(0), split(moduleAllParts(i-1),"-")(1),"C:\Users\Rahul\Documents\Camtasia Studio")
+   Next
+  End if 
+  ''------------------------------------------------------------------------------------------
+ module=9
+  i=1
+
+  recordPart = "All" 
+  '' 1 or 2 or 3.... or "ALL"
+  '"Part 1-2756|PART 2-2897|PART 3-4949|PART 4-3829|PART 5-6646"
+  moduleAllParts= split(getModuleData(module),"|")
+  
+  If (recordPart <> "All") then
+
+   call RecordModule(module,"PART "& recordPart, split(moduleAllParts(recordPart-1),"-")(1),"C:\Users\Rahul\Documents\Camtasia Studio")
+  Else
+   For i=1 to ubound(moduleAllParts)+1
+     call RecordModule(module,split(moduleAllParts(i-1),"-")(0), split(moduleAllParts(i-1),"-")(1),"C:\Users\Rahul\Documents\Camtasia Studio")
+   Next
+  End if 
+ ''------------------------------------------------------------------------------------------
+End Sub
+
+Function RecordModule(byval module,byval modulePart,byval partKey,byval saveOnPath)
+  Dim url,password,email
+  on Error Resume Next
+
+  saveOnPath= saveOnPath &"\module" & module &"\" & modulePart & ".trec"
+  url="http://qtpselenium.com/home/login/Selenium"
+  email="rahul.007.shrivastava@gmail.com"
+  password="Priya12"
+  
+  call Login(url,email,password)
+  call webConfirmObjectExist("Aliases.browser","Welcome rahul.007.shrivastava","ObjectType","Link")
+  call OpenModule(module)
+  call webConfirmObjectExist("Aliases.browser","SELENIUM VIDEOS - MODULE*","ObjectType","TextNode")
+  ''call webConfirmObjectExist("Aliases.browser",modulePart,"ObjectType","Link")
+  if( ClickLink(modulePart)=False) then
+    Aliases.browser.page.Keys("[F5]")
+    aqUtils.Delay(1000*5)
+    ClickLink(modulePart)
+  End if 
+    aqUtils.Delay(1000*4)
+  'call webConfirmObjectExist("Aliases.browser","Recording password:","ObjectType","Label")
+  Aliases.browser.pageQtpseleniumPopup.form.RecordingPassword.SetText(partKey)
+  Aliases.browser.pageQtpseleniumPopup.form.buttonOk.click
+  
+  aqUtils.Delay(1000*15)
+  Do while not aqObject.GetPropertyValue(Aliases.nbrplay.wndWBX_NBRMainFrame.WBX_NBRPlayBar.CWbxBmpButton, "Enabled") 
+      aqUtils.Delay(1000*5)
+  Loop
+  
+      Aliases.CamRecorder.wndQWidget.Activate  
+      Aliases.CamRecorder.wndQWidget.Keys "^!r"
+  
+  Do while aqObject.GetPropertyValue(Aliases.nbrplay.wndWBX_NBRMainFrame.WBX_NBRPlayBar.CWbxBmpButton2, "Enabled") 
+   aqUtils.Delay(1000*5)
+  Loop
+
+  Aliases.CamRecorder.wndQWidget2.Activate  
+  Aliases.CamRecorder.wndQWidget2.Keys "^!s"
+  aqUtils.Delay(1000*1)
+  Aliases.CamRecorder.dlgCamtasiaRecorder.Edit.SetText saveOnPath
+  aqUtils.Delay(1000*1)
+  Aliases.CamRecorder.dlgCamtasiaRecorder.btnSave.Click
+  aqUtils.Delay(1000*2)
+   Aliases.RefreshMappingInfo
+   Aliases.browser.buttonLogout.Click
+   aqUtils.Delay(1000*7)
+   Aliases.nbrplay.Close
+   Aliases.browser.Close
+   aqUtils.Delay(1000*2)
+End Function
+
+
+Function ClickLink( strInnertext )
+  Dim objParent, objChild, varResult ,strParent,strProperty, strValue
+	Dim propArray, valueArray, intTemp, i
+  on Error Resume Next
+
+  strParent="Aliases.browser"
+  strProperty="ObjectType"
+  strValue="Link"
+  
+  
+	''On Error Resume Next
+	Err.Clear
+
+	ClickLink = False
+  propArray = Split(strProperty, "|")
+  valueArray = Split(strValue, "|") 
+  
+  If Ubound(propArray) = Ubound(ValueArray) Then
+    intTemp = Ubound(PropArray)
+    redim Preserve propArray(intTemp + 3), valueArray(intTemp + 3)
+    propArray(intTemp+1 ) = "Enabled"
+    propArray(intTemp +2 ) = "Exists"
+    propArray(intTemp + 3 ) = "innertext"
+    valueArray(intTemp +1 ) = True
+    valueArray(intTemp + 2 ) = True
+    valueArray(intTemp + 3 ) = strInnertext
+  Else
+    Log.Error "Property and Value not passed correctly in Parameter"
+    Exit Function
+  End If
+  	      ''//Rahul Shrivastava : changed loop count to 10 because application is very slow 
+  For i = 0 to 3
+  Aliases.RefreshMappingInfo
+  set objParent = Eval(strParent)
+  If objParent.Exists = True Then
+    objParent.Refresh
+    objParent.RefreshMappingInfo
+	  objChild = objParent.FindAllChildren(propArray,valueArray,1000)
+    If Ubound(objChild) > -1 Then
+      objChild(0).click
+      ClickLink=True
+    Exit For
+    End If
+ 
+  End If
+  Next
+ 
+	If Err.Number <> 0 Then
+		Log.Error "Error in Function webConfirmObjectExist ", Err.Number & " : " &  Err.Description	
+		webConfirmObjectExist = False
+	End If
+	'On Error GoTo 0
+End Function
+
+Function Login(byval url,byval email,byval password)
+   Dim browser
+   'Browsers.Item(btChrome).Run
+   'aqUtils.Delay(1000*15)
+   Aliases.browser.page.Keys("[F5]")
+   Aliases.RefreshMappingInfo
+   if(Aliases.browser.page.LogOutLink.Exists)then
+     Aliases.browser.page.Keys("[F5]")
+     Aliases.browser.page.LogOutLink.Click
+     aqUtils.Delay(1000*5)
+   End if 
+   
+   Aliases.RefreshMappingInfo
+   Browsers.Item(btChrome).Navigate(url)
+   Browsers.Item(btChrome).Navigate(url)
+   aqUtils.Delay(1000*10)
+   Aliases.browser.page.textboxEmail.SetText(email)
+   Aliases.browser.page.passwordboxLoginPassword.SetText(password)
+   Aliases.browser.page.buttonLogin.Click
+   
+'   browser.wait(1000)
+
+End Function
+
+
+Function OpenModule(byval moduleNumber)
+   Dim moduleURL
+   moduleURL= "http://qtpselenium.com/users/modules/Selenium/Module-" & moduleNumber
+
+   Browsers.Item(btChrome).Navigate(moduleURL)
+   
+End Function
+
+
+Function webConfirmObjectExist (strParent, strInnertext, strProperty, strValue )
+
+	Dim objParent, objChild, varResult 
+	Dim propArray, valueArray, intTemp, i
+   
+	''On Error Resume Next
+	Err.Clear
+
+	webConfirmObjectExist = False
+  propArray = Split(strProperty, "|")
+  valueArray = Split(strValue, "|") 
+  
+  If Ubound(propArray) = Ubound(ValueArray) Then
+    intTemp = Ubound(PropArray)
+    redim Preserve propArray(intTemp + 3), valueArray(intTemp + 3)
+    propArray(intTemp+1 ) = "Enabled"
+    propArray(intTemp +2 ) = "Exists"
+    propArray(intTemp + 3 ) = "innertext"
+    valueArray(intTemp +1 ) = True
+    valueArray(intTemp + 2 ) = True
+    valueArray(intTemp + 3 ) = strInnertext
+  Else
+    Log.Error "Property and Value not passed correctly in Parameter"
+    Exit Function
+  End If
+  	      ''//Rahul Shrivastava : changed loop count to 10 because application is very slow 
+  For i = 0 to 3
+  set objParent = Eval(strParent)
+  If objParent.Exists = True Then
+    objParent.Refresh
+    objParent.RefreshMappingInfo
+	  objChild = objParent.FindAllChildren(propArray,valueArray,1000)
+    If Ubound(objChild) > -1 Then
+      webConfirmObjectExist = True
+      Exit For
+    End If
+  End If
+  Next
+ 
+	If Err.Number <> 0 Then
+		Log.Error "Error in Function webConfirmObjectExist ", Err.Number & " : " &  Err.Description	
+		webConfirmObjectExist = False
+	End If
+	'On Error GoTo 0
+
+End Function
+
+Function getModuleData(byval module)
+    Select Case module
+    Case 22
+      getModuleData="PART 1-2012|PART 2-3929|PART 3-5128|PART 4-2498|PART 5-3256|PART 6-2910|PART 7-3301|PART 8-4913|PART 9-3374|PART 10-2815|PART 11-6341|PART 12-4038"
+    Case 44
+      getModuleData="PART 1-3096|PART 2-4901|PART 3-1835|PART 4-4207|PART 5-3309|PART 6-4774|PART 7-9108|PART 8-1963|PART 9-4009|PART 10-4121"
+    case 3
+    getModuleData="PART 1:0000"
+    case 4
+    getModuleData="PART 1:0000"
+    case 5
+    getModuleData="PART 1:0000"
+    case 6
+    getModuleData="PART 1:0000"
+    case 7
+    getModuleData="PART 1:0000"
+    case 8
+    getModuleData="PART 1:0000"
+    case 9
+    getModuleData="PART 4:2000|PART 5:4871|PART 6:5346|PART 7:5662|PART 8:4878|PART 9:1745"
+    case 10
+    getModuleData="PART 1:0000"
+    case 11
+    getModuleData="PART 1:0000"
+    case 12
+      getModuleData="PART 2:4730|PART 3-5573"
+    case 13
+      getModuleData="PART 5-6646"
+    case 14
+      getModuleData="PART 1-4988|PART 2-8324|PART 3-1410"
+    case 15
+      getModuleData="PART 3-5056|PART 4-3004|PART 5-7231|PART 6-3534"
+    case 16
+      'getModuleData= "PART 2-5189|PART 3-7229|PART 4-5887"
+      getModuleData= "PART 3-7229"
+    case 17
+      getModuleData= "PART 12-3374"
+    case 18
+      getModuleData= "PART 1-9383|PART 2-1323|PART 3-9265|PART 4-5629|PART 5-2030|PART 6-7835|PART 7-1199|"
+    case 19
+      
+      'getModuleData= "PART 1-2280|PART 2-4619|PART 3-3333|PART 4-4512|PART 5-3177|PART 6-5068|PART 7-3437|PART 8-6525|PART 9-6997|PART 10-3718|PART 11-5069|PART 12-5333|PART 13-3505|PART 14-5350|PART 15-4812|PART 16-1749|PART 17-4345|PART 18-4278|PART 19-3275"
+    case 20
+      getModuleData= "PART 9-6997|PART 10-3718|PART 11-5069|PART 12-5333|PART 13-3505|PART 14-5350|PART 15-4812|PART 16-1749|PART 17-4345|PART 18-4278|PART 19-3275"
+    Case Else
+    getModuleData="PART 1:0000"
+End select
+
+End Function

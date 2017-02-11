@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Root signature="{24B6FA0B-0143-461A-9758-AEB9E9A9428B}" version="12.0" key="{FFA06455-6BE3-4F9F-8CA9-1AB41A76F6BF}">
+	<children>
+		<child name="StreamRecorder" key="{74842C52-D0E3-4B88-8FA4-CD22CED36867}" type="Project" typeId="{362A8EE5-675E-43A9-869D-06ECE80B0CB4}" pluginName="">
+			<data path="StreamRecorder\StreamRecorder.mds" />
+		</child>
+	</children>
+	<folders />
+	<testItems key="{CB1EA37B-A5C4-4053-802F-A51A03E3181A}">
+		<children>
+			<testItem key="{74842C52-D0E3-4B88-8FA4-CD22CED36867}" enabled="True" timeout="0" stopOnError="True" description="" />
+		</children>
+	</testItems>
+	<variables key="{57A55B06-6591-42E2-A705-6F5475797BF6}">
+		<data Version="3" />
+	</variables>
+	<analysis key="{0D77819A-B591-4ADA-9298-FFD689751094}" />
+	<scc key="{00000000-0000-0000-0000-000000000000}" name="">
+		<data />
+	</scc>
+</Root>
